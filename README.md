@@ -1,6 +1,5 @@
 Alicloud Application Log Data Archiving Solution Terraform Module
 
-================================================ 
 
 # terraform-alicloud-oss-nginx-log-archiving
 
@@ -28,46 +27,20 @@ data "alicloud_images" "default" {
 module "oss_nginx_log_archiving" {
   source = "alibabacloud-automation/oss-nginx-log-archiving/alicloud"
 
-  # VPC configuration
   vpc_config = {
-    vpc_name   = "example-vpc"
     cidr_block = "192.168.0.0/16"
   }
 
-  # VSwitch configuration
   vswitch_config = {
-    vswitch_name = "example-vswitch"
-    cidr_block   = "192.168.0.0/24"
-    zone_id      = data.alicloud_zones.default.zones[0].id
+    cidr_block = "192.168.0.0/24"
+    zone_id    = data.alicloud_zones.default.zones[0].id
   }
 
-  # ECS instance configuration
   instance_config = {
-    instance_name              = "nginx-log-server"
-    image_id                   = data.alicloud_images.default.images[0].id
-    instance_type              = "ecs.t6-c1m2.large"
-    system_disk_category       = "cloud_essd"
-    password                   = "YourSecurePassword123!"
-    internet_max_bandwidth_out = 5
-  }
-
-  # Security group rules configuration
-  security_group_rules_config = {
-    ssh = {
-      type        = "ingress"
-      ip_protocol = "tcp"
-      port_range  = "22/22"
-    }
-    http = {
-      type        = "ingress"
-      ip_protocol = "tcp"
-      port_range  = "80/80"
-    }
-    db = {
-      type        = "ingress"
-      ip_protocol = "tcp"
-      port_range  = "3306/3306"
-    }
+    image_id             = data.alicloud_images.default.images[0].id
+    instance_type        = "ecs.t6-c1m2.large"
+    system_disk_category = "cloud_essd"
+    password             = "YourSecurePassword123!"
   }
 }
 ```
@@ -109,33 +82,37 @@ No modules.
 | [alicloud_logtail_attachment.logtail_attachment](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/logtail_attachment) | resource |
 | [alicloud_logtail_config.logtail_config](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/logtail_config) | resource |
 | [alicloud_oss_bucket.oss_bucket](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/oss_bucket) | resource |
+| [alicloud_ram_role.log_default_role](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/ram_role) | resource |
+| [alicloud_ram_role_policy_attachment.attach_policy_to_role](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/ram_role_policy_attachment) | resource |
 | [alicloud_security_group.security_group](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/security_group) | resource |
 | [alicloud_security_group_rule.rules](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/security_group_rule) | resource |
 | [alicloud_sls_oss_export_sink.oss_export_sink](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/sls_oss_export_sink) | resource |
 | [alicloud_vpc.vpc](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/vpc) | resource |
 | [alicloud_vswitch.vswitch](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/resources/vswitch) | resource |
-| [alicloud_account.current](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/data-sources/account) | data source |
 | [alicloud_regions.current](https://registry.terraform.io/providers/aliyun/alicloud/latest/docs/data-sources/regions) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_common_name"></a> [common\_name](#input\_common\_name) | Common name suffix for resource naming | `string` | `"oss-nginx-log"` | no |
 | <a name="input_custom_nginx_setup_script"></a> [custom\_nginx\_setup\_script](#input\_custom\_nginx\_setup\_script) | Custom nginx setup script content (base64 encoded). If not provided, the default script will be used. | `string` | `null` | no |
 | <a name="input_ecs_command_config"></a> [ecs\_command\_config](#input\_ecs\_command\_config) | Configuration for ECS command | <pre>object({<br/>    name        = optional(string, "command-run-nginx-loongcollector")<br/>    working_dir = optional(string, "/root")<br/>    type        = optional(string, "RunShellScript")<br/>    timeout     = optional(number, 3600)<br/>  })</pre> | `{}` | no |
 | <a name="input_ecs_invocation_config"></a> [ecs\_invocation\_config](#input\_ecs\_invocation\_config) | Configuration for ECS command invocation | <pre>object({<br/>    create_timeout = optional(string, "15m")<br/>  })</pre> | `{}` | no |
-| <a name="input_instance_config"></a> [instance\_config](#input\_instance\_config) | Configuration for ECS instance. The attributes 'image\_id', 'instance\_type', 'system\_disk\_category', and 'password' are required. | <pre>object({<br/>    instance_name              = optional(string, "ecs")<br/>    image_id                   = string<br/>    instance_type              = string<br/>    system_disk_category       = string<br/>    password                   = string<br/>    internet_max_bandwidth_out = optional(number, 5)<br/>  })</pre> | <pre>{<br/>  "image_id": null,<br/>  "instance_type": null,<br/>  "password": null,<br/>  "system_disk_category": null<br/>}</pre> | no |
+| <a name="input_instance_config"></a> [instance\_config](#input\_instance\_config) | Configuration for ECS instance. The attributes 'image\_id', 'instance\_type', 'system\_disk\_category', and 'password' are required. | <pre>object({<br/>    instance_name              = optional(string, "ecs")<br/>    image_id                   = string<br/>    instance_type              = string<br/>    system_disk_category       = string<br/>    password                   = string<br/>    internet_max_bandwidth_out = optional(number, 5)<br/>  })</pre> | n/a | yes |
 | <a name="input_log_machine_group_config"></a> [log\_machine\_group\_config](#input\_log\_machine\_group\_config) | Configuration for SLS log machine group | <pre>object({<br/>    name          = optional(string, "lmg")<br/>    identify_type = optional(string, "ip")<br/>  })</pre> | `{}` | no |
 | <a name="input_log_project_config"></a> [log\_project\_config](#input\_log\_project\_config) | Configuration for SLS log project | <pre>object({<br/>    project_name = optional(string, "sls-project")<br/>  })</pre> | `{}` | no |
 | <a name="input_log_store_config"></a> [log\_store\_config](#input\_log\_store\_config) | Configuration for SLS log store | <pre>object({<br/>    logstore_name = optional(string, "sls-logstore")<br/>  })</pre> | `{}` | no |
 | <a name="input_log_store_index_config"></a> [log\_store\_index\_config](#input\_log\_store\_index\_config) | Configuration for log store index | <pre>object({<br/>    full_text_token = optional(string, " :#$^*\r\n\t")<br/>    field_search = object({<br/>      name  = optional(string, "content")<br/>      type  = optional(string, "text")<br/>      token = optional(string, " :#$^*\r\n\t")<br/>    })<br/>  })</pre> | <pre>{<br/>  "field_search": {}<br/>}</pre> | no |
 | <a name="input_logtail_config_config"></a> [logtail\_config\_config](#input\_logtail\_config\_config) | Configuration for logtail configuration | <pre>object({<br/>    input_type  = optional(string, "file")<br/>    name        = optional(string, "lc")<br/>    output_type = optional(string, "LogService")<br/>  })</pre> | `{}` | no |
+| <a name="input_nginx_logtail_config"></a> [nginx\_logtail\_config](#input\_nginx\_logtail\_config) | Logtail configuration for nginx access log collection in JSON format | <pre>object({<br/>    discardUnmatch = optional(bool, false)<br/>    enableRawLog   = optional(bool, true)<br/>    fileEncoding   = optional(string, "utf8")<br/>    filePattern    = optional(string, "access.log")<br/>    logPath        = optional(string, "/var/log/nginx/")<br/>    logType        = optional(string, "common_reg_log")<br/>    maxDepth       = optional(number, 10)<br/>    topicFormat    = optional(string, "none")<br/>  })</pre> | `{}` | no |
 | <a name="input_oss_bucket_config"></a> [oss\_bucket\_config](#input\_oss\_bucket\_config) | Configuration for OSS bucket | <pre>object({<br/>    bucket        = optional(string, "bucket")<br/>    storage_class = optional(string, "IA")<br/>    force_destroy = optional(bool, true)<br/>  })</pre> | `{}` | no |
+| <a name="input_oss_export_content_detail"></a> [oss\_export\_content\_detail](#input\_oss\_export\_content\_detail) | OSS export sink content detail configuration | <pre>object({<br/>    enableTag = optional(bool, true)<br/>  })</pre> | `{}` | no |
 | <a name="input_oss_export_sink_config"></a> [oss\_export\_sink\_config](#input\_oss\_export\_sink\_config) | Configuration for SLS OSS export sink | <pre>object({<br/>    display_name = optional(string, "display")<br/>    job_name     = optional(string, "export")<br/>    from_time    = optional(number, 1)<br/>    to_time      = optional(number, 0)<br/>    sink = object({<br/>      buffer_interval  = optional(string, "300")<br/>      buffer_size      = optional(string, "250")<br/>      compression_type = optional(string, "gzip")<br/>      content_type     = optional(string, "json")<br/>      time_zone        = optional(string, "+0800")<br/>      prefix           = optional(string, "app01")<br/>      suffix           = optional(string, "")<br/>      path_format      = optional(string, "%Y/%m/%d/%H/%M")<br/>    })<br/>  })</pre> | <pre>{<br/>  "sink": {}<br/>}</pre> | no |
 | <a name="input_security_group_config"></a> [security\_group\_config](#input\_security\_group\_config) | Configuration for security group | <pre>object({<br/>    security_group_name = optional(string, "sg")<br/>  })</pre> | `{}` | no |
-| <a name="input_security_group_rules_config"></a> [security\_group\_rules\_config](#input\_security\_group\_rules\_config) | Configuration for security group rules | <pre>object({<br/>    ssh = object({<br/>      type        = optional(string, "ingress")<br/>      ip_protocol = optional(string, "tcp")<br/>      nic_type    = optional(string, "intranet")<br/>      policy      = optional(string, "accept")<br/>      port_range  = optional(string, "22/22")<br/>      priority    = optional(number, 1)<br/>      cidr_ip     = optional(string, "192.168.0.0/16")<br/>    })<br/>    http = object({<br/>      type        = optional(string, "ingress")<br/>      ip_protocol = optional(string, "tcp")<br/>      nic_type    = optional(string, "intranet")<br/>      policy      = optional(string, "accept")<br/>      port_range  = optional(string, "80/80")<br/>      priority    = optional(number, 1)<br/>      cidr_ip     = optional(string, "192.168.0.0/16")<br/>    })<br/>    db = object({<br/>      type        = optional(string, "ingress")<br/>      ip_protocol = optional(string, "tcp")<br/>      nic_type    = optional(string, "intranet")<br/>      policy      = optional(string, "accept")<br/>      port_range  = optional(string, "3306/3306")<br/>      priority    = optional(number, 1)<br/>      cidr_ip     = optional(string, "192.168.0.0/16")<br/>    })<br/>  })</pre> | <pre>{<br/>  "db": {},<br/>  "http": {},<br/>  "ssh": {}<br/>}</pre> | no |
-| <a name="input_vpc_config"></a> [vpc\_config](#input\_vpc\_config) | Configuration for VPC. The attribute 'cidr\_block' is required. | <pre>object({<br/>    vpc_name   = optional(string, "vpc")<br/>    cidr_block = string<br/>  })</pre> | <pre>{<br/>  "cidr_block": null<br/>}</pre> | no |
-| <a name="input_vswitch_config"></a> [vswitch\_config](#input\_vswitch\_config) | Configuration for VSwitch. The attributes 'cidr\_block' and 'zone\_id' are required. | <pre>object({<br/>    vswitch_name = optional(string, "vswitch")<br/>    cidr_block   = string<br/>    zone_id      = string<br/>  })</pre> | <pre>{<br/>  "cidr_block": null,<br/>  "zone_id": null<br/>}</pre> | no |
+| <a name="input_security_group_rules_config"></a> [security\_group\_rules\_config](#input\_security\_group\_rules\_config) | Configuration for security group rules | <pre>map(object({<br/>    type        = string<br/>    ip_protocol = string<br/>    nic_type    = optional(string, "intranet")<br/>    policy      = optional(string, "accept")<br/>    port_range  = string<br/>    priority    = optional(number, 1)<br/>    cidr_ip     = optional(string, "0.0.0.0/0")<br/>  }))</pre> | <pre>{<br/>  "db": {<br/>    "ip_protocol": "tcp",<br/>    "port_range": "3306/3306",<br/>    "type": "ingress"<br/>  },<br/>  "http": {<br/>    "ip_protocol": "tcp",<br/>    "port_range": "80/80",<br/>    "type": "ingress"<br/>  },<br/>  "ssh": {<br/>    "ip_protocol": "tcp",<br/>    "port_range": "22/22",<br/>    "type": "ingress"<br/>  }<br/>}</pre> | no |
+| <a name="input_vpc_config"></a> [vpc\_config](#input\_vpc\_config) | Configuration for VPC. The attribute 'cidr\_block' is required. | <pre>object({<br/>    vpc_name   = optional(string, "vpc")<br/>    cidr_block = string<br/>  })</pre> | n/a | yes |
+| <a name="input_vswitch_config"></a> [vswitch\_config](#input\_vswitch\_config) | Configuration for VSwitch. The attributes 'cidr\_block' and 'zone\_id' are required. | <pre>object({<br/>    vswitch_name = optional(string, "vswitch")<br/>    cidr_block   = string<br/>    zone_id      = string<br/>  })</pre> | n/a | yes |
 
 ## Outputs
 
@@ -155,6 +132,8 @@ No modules.
 | <a name="output_oss_bucket_name"></a> [oss\_bucket\_name](#output\_oss\_bucket\_name) | The name of the OSS bucket for log archiving |
 | <a name="output_oss_export_sink_job_name"></a> [oss\_export\_sink\_job\_name](#output\_oss\_export\_sink\_job\_name) | The job name of the SLS OSS export sink |
 | <a name="output_oss_export_sink_status"></a> [oss\_export\_sink\_status](#output\_oss\_export\_sink\_status) | The status of the SLS OSS export sink |
+| <a name="output_ram_role_arn"></a> [ram\_role\_arn](#output\_ram\_role\_arn) | The ARN of the RAM role for SLS |
+| <a name="output_ram_role_name"></a> [ram\_role\_name](#output\_ram\_role\_name) | The name of the RAM role for SLS |
 | <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | The ID of the security group |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 | <a name="output_vswitch_id"></a> [vswitch\_id](#output\_vswitch\_id) | The ID of the VSwitch |
